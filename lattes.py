@@ -28,14 +28,17 @@ class extractLattes:
         return self.cursor.fetchall()
 
     def recovery_by_id(self, id):
+        sleep(4)
         url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + str(id)
         try:
             req = requests.get(url, headers=self.headers_agent)
             bsObj = BeautifulSoup(req.content, 'html.parser')
             description =  bsObj.findAll('p', class_='resumo')[0].text
             endereco = bsObj.find_all('div',{'class':'layout-cell layout-cell-9'})[2].text
-          
-
+            local = bsObj.find_all('div',{'class':'inst_back'})[0].text
+            act = bsObj.find_all('div',{'class':'layout-cell-pad-5'})
+            print(act)
+            #return [description,endereco]  
         except Exception as e:
             return e
 
@@ -69,9 +72,15 @@ class extractLattes:
             return self.recovery_id_recursive(lastPage)
         except Exception as e:
             return e
+    def filter_by_location(self):
+        ids = [[x[0],self.recovery_by_id(x[0])[1]] for x in self.get_data()]
+        ids_on_ufsc = [ x for x in ids if "ufsc" or "engenheria" or "ctc" in x[1]]
+        print(ids_on_ufsc)
 
+        
 
 os.system('clear')
 lattes = extractLattes()
 # print(lattes.recovery_id_recursive(0))
-print(lattes.recovery_by_id("K4164969T4"))
+print(lattes.recovery_by_id("K4482196Z6"))
+#print(lattes.filter_by_location())
