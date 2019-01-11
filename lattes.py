@@ -11,7 +11,9 @@ class extractLattes:
     def __init__(self, url=None):
         self.ids = []
         self.conn = sqlite3.connect("/home/lab-pesquisa/Desktop/AGU-CTC/ids.db")
+        self.conn2 = sqlite3.connect("/home/lab-pesquisa/Desktop/AGU-CTC/data_2.db")
         self.cursor = self.conn.cursor()
+        self.cursor2 = self.conn2.cursor()
         self.atual_url = "http://buscatextual.cnpq.br/buscatextual/busca.do?metodo=forwardPaginaResultados&registros=0;10&query=%28+%2Bidx_grd_area_atua%3A%22ENGENHARIAS%22++++++++%2Bidx_atuacao_prof_anterior%3Abra+%2Bidx_atuacao_prof_anterior%3Asu+%2Bidx_atuacao_prof_anterior%3Asc+%2Bidx_nme_inst_ativ_prof%3Auniversidade+federal+de+santa+catarina++++++%2Bidx_particao%3A1+%2Bidx_nacionalidade%3Ae%29+or+%28+%2Bidx_grd_area_atua%3A%22ENGENHARIAS%22++++++++%2Bidx_atuacao_prof_anterior%3Abra+%2Bidx_atuacao_prof_anterior%3Asu+%2Bidx_atuacao_prof_anterior%3Asc+%2Bidx_nme_inst_ativ_prof%3Auniversidade+federal+de+santa+catarina++++++%2Bidx_particao%3A1+%2Bidx_nacionalidade%3Ab%29&analise=cv&tipoOrdenacao=null&paginaOrigem=index.do&mostrarScore=false&mostrarBandeira=true&modoIndAdhoc=null"
         self.headers_agent = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -45,13 +47,11 @@ class extractLattes:
         try:
             req = requests.get(url, headers=self.headers_agent)
             bsObj = BeautifulSoup(req.content, 'html.parser')
-            description =  bsObj.findAll('p', class_='resumo')[0].text
-            endereco = bsObj.find_all('div',{'class':'layout-cell layout-cell-9'})[2].text
-            for children in bsObj.find_all('div',{'class':'title-wrapper'})[6].children:
-                print(children.get_text)
-                
-                
-
+            description =  bsObj.find('p', class_='resumo').text
+            endereco = bsObj.find_all('div',{'class':'title-wrapper'})[2].text
+            empresa = bsObj.find('div',{'class':'inst_back'}).text
+            print([id,empresa,endereco,description])
+            return self.write([empresa,endereco,description])
         except Exception as e:
             return e
 
@@ -69,10 +69,11 @@ class extractLattes:
         self.atual_url = url_writable
 
     def write(self, date):
-        for i in date:
-            self.cursor.executemany(
-                """INSERT INTO ids (id,Nome) VALUES (?,?);""", [i])
-        self.conn.commit()
+        try:
+            self.cursor.executemany("""INSERT INTO ids (company,andress,description) VALUES (?,?,?);""", [date])
+            self.conn.commit()
+        except Exception as e:
+            print(e)
 
     def recovery_id_recursive(self, lastPage):
         sleep(4)
@@ -92,8 +93,8 @@ os.system('clear')
 lattes = extractLattes()
 # print(lattes.recovery_id_recursive(0))
 print(lattes.recovery_by_id("K4762759U5"))
-#print(lattes.filter('K4258346A3'))
+#print(lattes.filter('K4762759U5'))
 
-#for i in lattes.get_data():
+for i in lattes.get_data():
     #print(str(i[1])+':'+str(lattes.filter(i[0])))
-    #print(lattes.recovery_by_id(i[0]))
+    lattes.recovery_by_id(i[0])
