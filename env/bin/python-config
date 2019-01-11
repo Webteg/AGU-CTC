@@ -1,4 +1,4 @@
-#!/home/roger/Documentos/Lattes/env/bin/python
+#!/home/lab-pesquisa/Desktop/AGU-CTC/env/bin/python
 
 import sys
 import getopt
