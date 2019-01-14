@@ -1,12 +1,12 @@
-[INFO  - 2019-01-11T17:04:41.185Z] GhostDriver - Main - running on port 52719
-[INFO  - 2019-01-11T17:04:42.124Z] Session [fcd5a790-15c2-11e9-bddc-21ae176feffd] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Unknown; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.1.1 Safari/538.1","webSecurityEnabled":true}
-[INFO  - 2019-01-11T17:04:42.125Z] Session [fcd5a790-15c2-11e9-bddc-21ae176feffd] - page.customHeaders:  - {}
-[INFO  - 2019-01-11T17:04:42.125Z] Session [fcd5a790-15c2-11e9-bddc-21ae176feffd] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.1.1","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"linux-unknown-64bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"}}
-[INFO  - 2019-01-11T17:04:42.125Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: fcd5a790-15c2-11e9-bddc-21ae176feffd
-[ERROR - 2019-01-11T17:04:42.729Z] Session [fcd5a790-15c2-11e9-bddc-21ae176feffd] - page.onError - msg: ReferenceError: Can't find variable: Autocompleter
+[INFO  - 2019-01-14T16:08:43.849Z] GhostDriver - Main - running on port 40095
+[INFO  - 2019-01-14T16:08:44.799Z] Session [aaf2d960-1816-11e9-a54c-cfd4e3925713] - page.settings - {"XSSAuditingEnabled":false,"javascriptCanCloseWindows":true,"javascriptCanOpenWindows":true,"javascriptEnabled":true,"loadImages":true,"localToRemoteUrlAccessEnabled":false,"userAgent":"Mozilla/5.0 (Unknown; Linux x86_64) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.1.1 Safari/538.1","webSecurityEnabled":true}
+[INFO  - 2019-01-14T16:08:44.799Z] Session [aaf2d960-1816-11e9-a54c-cfd4e3925713] - page.customHeaders:  - {}
+[INFO  - 2019-01-14T16:08:44.799Z] Session [aaf2d960-1816-11e9-a54c-cfd4e3925713] - Session.negotiatedCapabilities - {"browserName":"phantomjs","version":"2.1.1","driverName":"ghostdriver","driverVersion":"1.2.0","platform":"linux-unknown-64bit","javascriptEnabled":true,"takesScreenshot":true,"handlesAlerts":false,"databaseEnabled":false,"locationContextEnabled":false,"applicationCacheEnabled":false,"browserConnectionEnabled":false,"cssSelectorsEnabled":true,"webStorageEnabled":false,"rotatable":false,"acceptSslCerts":false,"nativeEvents":true,"proxy":{"proxyType":"direct"}}
+[INFO  - 2019-01-14T16:08:44.799Z] SessionManagerReqHand - _postNewSessionCommand - New Session Created: aaf2d960-1816-11e9-a54c-cfd4e3925713
+[ERROR - 2019-01-14T16:08:45.475Z] Session [aaf2d960-1816-11e9-a54c-cfd4e3925713] - page.onError - msg: ReferenceError: Can't find variable: Autocompleter
 
   phantomjs://platform/console++.js:263 in error
-[ERROR - 2019-01-11T17:04:42.729Z] Session [fcd5a790-15c2-11e9-bddc-21ae176feffd] - page.onError - stack:
+[ERROR - 2019-01-14T16:08:45.475Z] Session [aaf2d960-1816-11e9-a54c-cfd4e3925713] - page.onError - stack:
   global code (http://buscatextual.cnpq.br/buscatextual/js/ajax/ajaxtags.js:820)
 
   phantomjs://platform/console++.js:263 in error

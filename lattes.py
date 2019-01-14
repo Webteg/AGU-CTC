@@ -7,6 +7,7 @@ import os
 from time import sleep
 import pandas as pd 
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 
 
 class extractLattes:
@@ -24,11 +25,18 @@ class extractLattes:
         return names["Nome"]
 
     def serch_by_name(self, name):
-        driver = webdriver.PhantomJS("/home/lab-pesquisa/Desktop/AGU-CTC/phantomjs-2.1.1-linux-x86_64/bin/phantomjs")
-        driver.get("http://buscatextual.cnpq.br/buscatextual/busca.do")
-        driver.find_element_by_id('textoBusca').send_keys(name)
-        html = driver.page_source
-        print(html)
+        url = "http://buscatextual.cnpq.br/buscatextual/busca.do"
+        driver = webdriver.Chrome('/usr/bin/chromedriver')
+        driver.get(url)
+        text_fild = driver.find_element_by_id("textoBusca")
+        text_fild.send_keys(name)
+        driver.find_element_by_id('botaoBuscaFiltros').click()
+        
+        
+            
+
+        
+        #print(driver.page_source)
 
 
     def bsobj(self, url):
@@ -106,7 +114,7 @@ class extractLattes:
 
 os.system('clear')
 lattes = extractLattes()
-print(lattes.serch_by_name("Daniel Santana de Freitas"))
+print(lattes.serch_by_name("Jose Luis Almada Guntzel"))
 #print(lattes.recovery_id_recursive(0))
 #print(lattes.check_id('K4795324H4'))
 #print(lattes.recovery_by_id("K4762759U5"))
