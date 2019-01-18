@@ -5,6 +5,7 @@ import sqlite3
 import csv
 import os
 from time import sleep
+import selenium as se
 import pandas as pd 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -26,17 +27,20 @@ class extractLattes:
 
     def serch_by_name(self, name):
         url = "http://buscatextual.cnpq.br/buscatextual/busca.do"
-        driver = webdriver.Chrome('/usr/bin/chromedriver')
+        options = se.webdriver.ChromeOptions()
+        options.add_argument('headless')
+        driver = se.webdriver.Chrome(chrome_options=options)
         driver.get(url)
+        sleep(2)
+
         text_fild = driver.find_element_by_id("textoBusca")
         text_fild.send_keys(name)
+        driver.find_element_by_id('buscarDemais').click()
         driver.find_element_by_id('botaoBuscaFiltros').click()
-        
-        
-            
-
-        
-        #print(driver.page_source)
+        html = driver.page_source
+        bs = BeautifulSoup(html, "html.parser")
+        id_html =  bs.findAll('li')
+        return [str(id_html)[41:51],name]
 
 
     def bsobj(self, url):
@@ -50,26 +54,46 @@ class extractLattes:
 
 
     def recovery_by_id(self, id_lattes):
-        for i in id_lattes:
-            if self.check_id(i[0]):
+            if self.check_id(id_lattes[0]):
                 print("id já esta na base")
             else:
                 sleep(6)
-                url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + str(i[0])
+                url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + str(id_lattes[0])
                 try:
-                    name = i[1]
+                    name = id_lattes[1]
                     req = requests.get(url, headers=self.headers_agent)
                     bsObj = BeautifulSoup(req.content, 'html.parser')
+                    
                     resumo =  bsObj.find('p', class_='resumo').text
-                    endereco = bsObj.find_all('div',{'class':'title-wrapper'})[2].text
-                    empresa = bsObj.find('div',{'class':'inst_back'}).text
-                    print([i[0],empresa,endereco])
-                    self.write([i[0],name,empresa,endereco,resumo])
+                   
+                    title_wrapper = bsObj.find_all('div', {'class':'title-wrapper'})
+                    lista_atributos = [x.a.h1.text for x in title_wrapper if x.a is not None]
+                    lista_atributos.insert(0,'Nan')
+
+                    try:
+                        projetos_pesquisa = [x.text for x in title_wrapper[lista_atributos.index('Projetos de pesquisa')].find_all('div')]
+                    except:
+                        projetos_pesquisa = ['no data']  
+                    try:
+                        projetos_extensao = [x.text for x in title_wrapper[lista_atributos.index('Projetos de extensão')].find_all('div', {'class':'layout-cell layout-cell-9'})]
+                    except:
+                        projetos_extensao =['no data']
+                    try:   
+                        linhas_de_pesquida = [x.text for x in title_wrapper[lista_atributos.index('Linhas de pesquisa')].find_all('div',{'class':'layout-cell-pad-5'})]
+                    except:
+                        linhas_de_pesquida =['no data']
+                    try:   
+                        area_de_atuacao = [x.text for x in title_wrapper[lista_atributos.index('Áreas de atuação')].find_all('div',{'class':'layout-cell-pad-5'})]
+                    except:
+                        area_de_atuacao =['no data']
+                    try:
+                        producoes_artigos = [x.text for x in title_wrapper[lista_atributos.index('Produções')].find_all('div', {'class':'artigo-completo'})]
+                    except:
+                        producoes_artigos = ['no data']
+                    
+                    return [id_lattes[0], name, resumo , projetos_pesquisa, projetos_extensao, linhas_de_pesquida, area_de_atuacao, producoes_artigos]
                 except Exception as e:
                     return e
-
-    def get_url(self):
-        return self.atual_url
 
     def check_id(self,id_lattes):
         self.cursor.execute("""SELECT id FROM ids""")
@@ -78,6 +102,31 @@ class extractLattes:
             if i[0]==id_lattes:
                 return True
         return False
+
+    def write(self, date):
+        try:
+            self.cursor.executemany("""INSERT INTO ids (id,nome,empresa,endereço,resumo) VALUES (?,?,?,?,?);""", [date])
+            self.conn.commit()
+            return "dado inserido no banco com sucesso"
+        except Exception as e:
+            print(e)
+
+#'--------------------------------------------------------------------------'
+
+    def get_url(self):
+        return self.atual_url
+
+    def recovery_id_recursive(self, lastPage):
+            sleep(4)
+            try:
+                id_lattes = self.get_id(self.bsobj())
+                print('recovered ids,names:' + str(id_lattes))
+                self.recovery_by_id(id_lattes)
+                lastPage += 10
+                self.next_page(lastPage)
+                return self.recovery_id_recursive(lastPage)
+            except Exception as e:
+                return e
 
     def get_id(self, bsobj):
         ids_array = bsobj.findAll('li')
@@ -89,37 +138,16 @@ class extractLattes:
         url_writable = "http://buscatextual.cnpq.br/buscatextual/busca.do?metodo=forwardPaginaResultados&registros="+str(pageNum)+";10&query=%28%2Bidx_assunto%3A+%28%22+universidade+federal+de+santa+catarina%22%29++%2Bidx_atuacao_prof_anterior%3Abra+%2Bidx_atuacao_prof_anterior%3Asu+%2Bidx_atuacao_prof_anterior%3Asc+%2Bidx_nme_inst_ativ_prof%3Auniversidade+federal+de+santa+catarina++++++%2Bidx_particao%3A1+%2Bidx_nacionalidade%3Ae%29+or+%28%2Bidx_assunto%3A+%28%22+universidade+federal+de+santa+catarina%22%29++%2Bidx_atuacao_prof_anterior%3Abra+%2Bidx_atuacao_prof_anterior%3Asu+%2Bidx_atuacao_prof_anterior%3Asc+%2Bidx_nme_inst_ativ_prof%3Auniversidade+federal+de+santa+catarina++++++%2Bidx_particao%3A1+%2Bidx_nacionalidade%3Ab%29&analise=cv&tipoOrdenacao=null&paginaOrigem=index.do&mostrarScore=true&mostrarBandeira=true&modoIndAdhoc=null"
         self.atual_url = url_writable
 
+#'--------------------------------------------------------------------------'
 
-    def write(self, date):
-        try:
-            self.cursor.executemany("""INSERT INTO ids (id,nome,empresa,endereço,resumo) VALUES (?,?,?,?,?);""", [date])
-            self.conn.commit()
-            return "dado inserido no banco com sucesso"
-        except Exception as e:
-            print(e)
-
-    def recovery_id_recursive(self, lastPage):
-        sleep(4)
-        try:
-            id_lattes = self.get_id(self.bsobj())
-            print('recovered ids,names:' + str(id_lattes))
-            self.recovery_by_id(id_lattes)
-            lastPage += 10
-            self.next_page(lastPage)
-            return self.recovery_id_recursive(lastPage)
-        except Exception as e:
-            return e
- 
-        
-
+   
 os.system('clear')
 lattes = extractLattes()
-print(lattes.serch_by_name("Jose Luis Almada Guntzel"))
-#print(lattes.recovery_id_recursive(0))
-#print(lattes.check_id('K4795324H4'))
-#print(lattes.recovery_by_id("K4762759U5"))
-#print(lattes.filter('K4762759U5'))
 
-# for i in lattes.get_data():
-#     #print(str(i[1])+':'+str(lattes.filter(i[0])))
-#     lattes.recovery_by_id(i[0])
+id_name = lattes.serch_by_name("Roger Amaro Almeida")
+date = lattes.recovery_by_id(id_name)
+print(date)
+#print(id_lattes)
+#dados = lattes.recovery_by_id(id_lattes)
+#print(dados)
+
