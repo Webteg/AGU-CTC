@@ -54,46 +54,46 @@ class extractLattes:
 
 
     def recovery_by_id(self, id_lattes):
-            if self.check_id(id_lattes[0]):
-                print("id já esta na base")
-            else:
-                sleep(6)
-                url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + str(id_lattes[0])
-                try:
-                    name = id_lattes[1]
-                    req = requests.get(url, headers=self.headers_agent)
-                    bsObj = BeautifulSoup(req.content, 'html.parser')
-                    
-                    resumo =  bsObj.find('p', class_='resumo').text
-                   
-                    title_wrapper = bsObj.find_all('div', {'class':'title-wrapper'})
-                    lista_atributos = [x.a.h1.text for x in title_wrapper if x.a is not None]
-                    lista_atributos.insert(0,'Nan')
+        sleep(6)
+        url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + \
+            str(id_lattes[0])
+        try:
+            name = id_lattes[1]
+            req = requests.get(url, headers=self.headers_agent)
+            bsObj = BeautifulSoup(req.content, 'html.parser')
 
-                    try:
-                        projetos_pesquisa = [x.text for x in title_wrapper[lista_atributos.index('Projetos de pesquisa')].find_all('div')]
-                    except:
-                        projetos_pesquisa = ['no data']  
-                    try:
-                        projetos_extensao = [x.text for x in title_wrapper[lista_atributos.index('Projetos de extensão')].find_all('div', {'class':'layout-cell layout-cell-9'})]
-                    except:
-                        projetos_extensao =['no data']
-                    try:   
-                        linhas_de_pesquida = [x.text for x in title_wrapper[lista_atributos.index('Linhas de pesquisa')].find_all('div',{'class':'layout-cell-pad-5'})]
-                    except:
-                        linhas_de_pesquida =['no data']
-                    try:   
-                        area_de_atuacao = [x.text for x in title_wrapper[lista_atributos.index('Áreas de atuação')].find_all('div',{'class':'layout-cell-pad-5'})]
-                    except:
-                        area_de_atuacao =['no data']
-                    try:
-                        producoes_artigos = [x.text for x in title_wrapper[lista_atributos.index('Produções')].find_all('div', {'class':'artigo-completo'})]
-                    except:
-                        producoes_artigos = ['no data']
-                    
-                    return [id_lattes[0], name, resumo , projetos_pesquisa, projetos_extensao, linhas_de_pesquida, area_de_atuacao, producoes_artigos]
-                except Exception as e:
-                    return e
+            # resumo =  bsObj.find('p', class_='resumo').text
+
+            title_wrapper = bsObj.find_all('div', {'class': 'title-wrapper'})
+          
+
+            projetos_pesquisa = [x.text.replace('\n','').replace('\t','') for x in title_wrapper if x.a is not None and x.a.h1.text == 'Projetos de pesquisa']
+            projetos_extensao = [x.text for x in title_wrapper if x.a is not None and x.a.h1.text == 'Projetos de extensão']
+            linhas_de_pesquisa = [x.text.replace('\n','') for x in title_wrapper if x.a is not None and x.a.h1.text == 'Linhas de pesquisa']
+            area_de_atuação = [x.text.replace('\n','') for x in title_wrapper if x.a is not None and x.a.h1.text == 'Áreas de atuação']
+            #artigos_publicados = [x for x in title_wrapper if x.a is not None and x.a.h1.text == 'Produções']
+            artigos_publicados =  [x.parent for x in title_wrapper if x.a is not None and x.a.h1.text=='Produções'][0].find_all('div',id='artigos-completos')
+         
+         
+            
+            # try:
+            #     area_de_atuacao = [x.text for x in title_wrapper[lista_atributos.index('Áreas de atuação')].find_all('div',{'class':'layout-cell-pad-5'})]
+            # except:
+            #     area_de_atuacao =['no data']
+            # try:
+            #     producoes_artigos = [x.text for x in title_wrapper[lista_atributos.index('Produções')].find_all('div', {'class':'artigo-completo'})]
+            # except:
+            #     producoes_artigos = ['no data']
+
+            
+            producao_tecnica = [x for x in title_wrapper if x.a is not None and x.a.h1.text == 'Inovação']
+                #print(lista_atributos)
+            
+
+            print(artigos_publicados)
+        except Exception as e:
+                return e
+                
 
     def check_id(self,id_lattes):
         self.cursor.execute("""SELECT id FROM ids""")
@@ -144,7 +144,7 @@ class extractLattes:
 os.system('clear')
 lattes = extractLattes()
 
-id_name = lattes.serch_by_name("Roger Amaro Almeida")
+id_name = lattes.serch_by_name("Marcelo Ricardo Stemmer")
 date = lattes.recovery_by_id(id_name)
 print(date)
 #print(id_lattes)
