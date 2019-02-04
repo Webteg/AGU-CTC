@@ -40,7 +40,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/roger/Área de Trabalho/AGU-CTC/env"
+VIRTUAL_ENV="/home/lab-pesquisa/AGU-CTC/env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

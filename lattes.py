@@ -15,7 +15,7 @@ class extractLattes:
     def __init__(self, url=None):
         
         self.ids = []
-        self.conn = sqlite3.connect("/home/lab-pesquisa/Desktop/AGU-CTC/ids.db")
+        self.conn = sqlite3.connect("professores.db")
         self.cursor = self.conn.cursor()
         self.atual_url = "http://buscatextual.cnpq.br/buscatextual/busca.do?metodo=forwardPaginaResultados&registros=10;10&query=%28%2Bidx_assunto%3A+%28%22+universidade+federal+de+santa+catarina%22%29++%2Bidx_atuacao_prof_anterior%3Abra+%2Bidx_atuacao_prof_anterior%3Asu+%2Bidx_atuacao_prof_anterior%3Asc+%2Bidx_nme_inst_ativ_prof%3Auniversidade+federal+de+santa+catarina++++++%2Bidx_particao%3A1+%2Bidx_nacionalidade%3Ae%29+or+%28%2Bidx_assunto%3A+%28%22+universidade+federal+de+santa+catarina%22%29++%2Bidx_atuacao_prof_anterior%3Abra+%2Bidx_atuacao_prof_anterior%3Asu+%2Bidx_atuacao_prof_anterior%3Asc+%2Bidx_nme_inst_ativ_prof%3Auniversidade+federal+de+santa+catarina++++++%2Bidx_particao%3A1+%2Bidx_nacionalidade%3Ab%29&analise=cv&tipoOrdenacao=null&paginaOrigem=index.do&mostrarScore=true&mostrarBandeira=true&modoIndAdhoc=null"
         self.headers_agent = {
@@ -54,43 +54,59 @@ class extractLattes:
 
 
     def recovery_by_id(self, id_lattes):
-        sleep(6)
-        url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + \
-            str(id_lattes[0])
+        #sleep(6)
+        #url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id="+str(id_lattes[0])
         try:
-            name = id_lattes[1]
-            req = requests.get(url, headers=self.headers_agent)
-            bsObj = BeautifulSoup(req.content, 'html.parser')
+            #name = id_lattes[1]
+            #req = requests.get(url, headers=self.headers_agent)
+            file_html = open('html.txt','r')
+            bsObj = BeautifulSoup(file_html.read(), 'html.parser')
 
-            # resumo =  bsObj.find('p', class_='resumo').text
+            resumo =  bsObj.find('p', class_='resumo').text
+            
+            title_wrapper =[[x,x.a.h1.text] for x in  bsObj.findAll('div',{'class':'title-wrapper'}) if x.a is not None]
+            #---------------------------------------------------------------------------------------------------#
+            artigos = [ x[0] for x in title_wrapper if x[1]=='Produções'][0]
+            artigos  =[ x.get_text() for x in artigos.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
+           #---------------------------------------------------------------------------------------------------#
+            linhas_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Linhas de pesquisa'][0]
+            linhas_de_pesquisa = [ x.get_text() for x in linhas_de_pesquisa.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
+            #---------------------------------------------------------------------------------------------------#
+            projetos_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Projetos de pesquisa'][0]
+            projetos_de_pesquisa = [ x.get_text() for x in projetos_de_pesquisa.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            #arrumar array 
+            #---------------------------------------------------------------------------------------------------#
+            projetos_em_desenvolvimento = [ x[0] for x in title_wrapper if x[1]=='Projetos de desenvolvimento'][0]
+            projetos_em_desenvolvimento = [ x.get_text() for x in projetos_em_desenvolvimento.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            #arrumar array 
+            #---------------------------------------------------------------------------------------------------#
 
-            title_wrapper = bsObj.find_all('div', {'class': 'title-wrapper'})
+            area_atuacao = [ x[0] for x in title_wrapper if x[1]=='Áreas de atuação'][0]
+            area_atuacao = [ x.get_text() for x in area_atuacao.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+           
+             #---------------------------------------------------------------------------------------------------#
+
+            #---------------------------------------------------------------------------------------------------#
+
+            patentes = [ x[0] for x in title_wrapper if x[1]=='Patentes e registros'][0]
+            patentes = [ x.get_text().replace('\t','').replace('\n','') for x in patentes.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+           
+             #---------------------------------------------------------------------------------------------------#
+
+            orientacoes = [ x[0] for x in title_wrapper if x[1]=='Orientações'][0]
+            orientacoes = [ x.get_text() for x in orientacoes.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+           
+             #---------------------------------------------------------------------------------------------------#
+
+            
+
+
+            print(orientacoes)
+
+
+
+
           
-
-            projetos_pesquisa = [x.text.replace('\n','').replace('\t','') for x in title_wrapper if x.a is not None and x.a.h1.text == 'Projetos de pesquisa']
-            projetos_extensao = [x.text for x in title_wrapper if x.a is not None and x.a.h1.text == 'Projetos de extensão']
-            linhas_de_pesquisa = [x.text.replace('\n','') for x in title_wrapper if x.a is not None and x.a.h1.text == 'Linhas de pesquisa']
-            area_de_atuação = [x.text.replace('\n','') for x in title_wrapper if x.a is not None and x.a.h1.text == 'Áreas de atuação']
-            #artigos_publicados = [x for x in title_wrapper if x.a is not None and x.a.h1.text == 'Produções']
-            artigos_publicados =  [x.parent for x in title_wrapper if x.a is not None and x.a.h1.text=='Produções'][0].find_all('div',id='artigos-completos')
-         
-         
-            
-            # try:
-            #     area_de_atuacao = [x.text for x in title_wrapper[lista_atributos.index('Áreas de atuação')].find_all('div',{'class':'layout-cell-pad-5'})]
-            # except:
-            #     area_de_atuacao =['no data']
-            # try:
-            #     producoes_artigos = [x.text for x in title_wrapper[lista_atributos.index('Produções')].find_all('div', {'class':'artigo-completo'})]
-            # except:
-            #     producoes_artigos = ['no data']
-
-            
-            producao_tecnica = [x for x in title_wrapper if x.a is not None and x.a.h1.text == 'Inovação']
-                #print(lista_atributos)
-            
-
-            print(artigos_publicados)
         except Exception as e:
                 return e
                 
@@ -144,8 +160,8 @@ class extractLattes:
 os.system('clear')
 lattes = extractLattes()
 
-id_name = lattes.serch_by_name("Marcelo Ricardo Stemmer")
-date = lattes.recovery_by_id(id_name)
+#id_name = lattes.serch_by_name("Janaide Cavalcante Rocha")
+date = lattes.recovery_by_id('id_name')
 print(date)
 #print(id_lattes)
 #dados = lattes.recovery_by_id(id_lattes)

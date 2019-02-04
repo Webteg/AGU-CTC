@@ -1,6 +1,5 @@
-#!/bin/sh
-'''exec' "/home/roger/Área de Trabalho/AGU-CTC/env/bin/python3" "$0" "$@"
-' '''
+#!/home/lab-pesquisa/AGU-CTC/env/bin/python3
+
 # -*- coding: utf-8 -*-
 import re
 import sys
