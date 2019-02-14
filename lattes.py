@@ -1,3 +1,4 @@
+#!./env/bin/python3
 # -*- coding: utf-8 -*-
 from bs4 import BeautifulSoup
 import requests
@@ -9,7 +10,8 @@ import selenium as se
 import pandas as pd 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 class extractLattes:
     def __init__(self, url=None):
@@ -22,8 +24,8 @@ class extractLattes:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
     def get_name_by_department(self, depart):
-        names = pd.read_excel("prof_CTC.xlsx", sheet_name=depart)
-        return names["Nome"]
+        self.cursor.execute("SELECT nome FROM professores WHERE departamento=?",(depart, ))
+        return self.cursor.fetchall()
 
     def serch_by_name(self, name):
         url = "http://buscatextual.cnpq.br/buscatextual/busca.do"
@@ -44,7 +46,7 @@ class extractLattes:
 
 
     def bsobj(self, url):
-        sleep(5)
+        sleep(2)
         try:
             req = requests.get(url, headers=self.headers_agent)
             return BeautifulSoup(req.content, 'html.parser')
@@ -54,54 +56,56 @@ class extractLattes:
 
 
     def recovery_by_id(self, id_lattes):
-        #sleep(6)
-        #url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id="+str(id_lattes[0])
+        sleep(2)
+        url = "http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id="+str(id_lattes[0])
         try:
-            #name = id_lattes[1]
-            #req = requests.get(url, headers=self.headers_agent)
-            file_html = open('html.txt','r')
-            bsObj = BeautifulSoup(file_html.read(), 'html.parser')
+            name = id_lattes[1]
+            req = requests.get(url, headers=self.headers_agent)
+            bsObj = BeautifulSoup(req.content, 'html.parser')
 
             resumo =  bsObj.find('p', class_='resumo').text
             
             title_wrapper =[[x,x.a.h1.text] for x in  bsObj.findAll('div',{'class':'title-wrapper'}) if x.a is not None]
             #---------------------------------------------------------------------------------------------------#
-            artigos = [ x[0] for x in title_wrapper if x[1]=='Produções'][0]
-            artigos  =[ x.get_text() for x in artigos.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
-           #---------------------------------------------------------------------------------------------------#
-            linhas_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Linhas de pesquisa'][0]
-            linhas_de_pesquisa = [ x.get_text() for x in linhas_de_pesquisa.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
+            artigos = [ x[0] for x in title_wrapper if x[1] is not None and x[1]=="Produções"]
+            if not artigos==[]:
+                artigos  =[ x.get_text() for x in artigos[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
             #---------------------------------------------------------------------------------------------------#
-            projetos_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Projetos de pesquisa'][0]
-            projetos_de_pesquisa = [ x.get_text() for x in projetos_de_pesquisa.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
-            #arrumar array 
-            #---------------------------------------------------------------------------------------------------#
-            projetos_em_desenvolvimento = [ x[0] for x in title_wrapper if x[1]=='Projetos de desenvolvimento'][0]
-            projetos_em_desenvolvimento = [ x.get_text() for x in projetos_em_desenvolvimento.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
-            #arrumar array 
-            #---------------------------------------------------------------------------------------------------#
+            linhas_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Linhas de pesquisa']
+            if not linhas_de_pesquisa==[]:
+                linhas_de_pesquisa = [ x.get_text() for x in linhas_de_pesquisa[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
+            # #---------------------------------------------------------------------------------------------------#
+            projetos_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Projetos de pesquisa']
+            if not projetos_de_pesquisa==[]:
+                projetos_de_pesquisa = [ x.get_text() for x in projetos_de_pesquisa[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+                projetos_de_pesquisa = list(zip(projetos_de_pesquisa[::2], projetos_de_pesquisa[1::2]))
+            # #---------------------------------------------------------------------------------------------------#
+            projetos_em_desenvolvimento = [ x[0] for x in title_wrapper if x[1]=='Projetos de desenvolvimento']
+            if not projetos_em_desenvolvimento == []:
+                projetos_em_desenvolvimento = [ x.get_text() for x in projetos_em_desenvolvimento[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(projetos_em_desenvolvimento)>0 and len(x.get_text())>15]
+                projetos_em_desenvolvimento = list(zip(projetos_em_desenvolvimento[::2], projetos_em_desenvolvimento[1::2]))
+    
+            # #---------------------------------------------------------------------------------------------------#
 
-            area_atuacao = [ x[0] for x in title_wrapper if x[1]=='Áreas de atuação'][0]
-            area_atuacao = [ x.get_text() for x in area_atuacao.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            area_atuacao =[ x[0] for x in title_wrapper if x[1]=='Áreas de atuação']
+            if not area_atuacao==[]:
+                area_atuacao = [ x.get_text() for x in area_atuacao[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
            
-             #---------------------------------------------------------------------------------------------------#
+            # #---------------------------------------------------------------------------------------------------#
 
-            #---------------------------------------------------------------------------------------------------#
-
-            patentes = [ x[0] for x in title_wrapper if x[1]=='Patentes e registros'][0]
-            patentes = [ x.get_text().replace('\t','').replace('\n','') for x in patentes.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            patentes = [ x[0] for x in title_wrapper if x[1]=='Patentes e registros']
+            if not patentes==[]:
+                patentes = [ x.get_text().replace('\t','').replace('\n','') for x in patentes[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
            
-             #---------------------------------------------------------------------------------------------------#
+            #  #---------------------------------------------------------------------------------------------------#
 
-            orientacoes = [ x[0] for x in title_wrapper if x[1]=='Orientações'][0]
-            orientacoes = [ x.get_text() for x in orientacoes.findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            orientacoes = [ x[0] for x in title_wrapper if x[1]=='Orientações']
+            if not orientacoes==[]:
+                orientacoes = [ x.get_text() for x in orientacoes[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
            
-             #---------------------------------------------------------------------------------------------------#
+            #  #---------------------------------------------------------------------------------------------------#
 
-            
-
-
-            print(orientacoes)
+            return [len(artigos),len(patentes)]
 
 
 
@@ -159,11 +163,21 @@ class extractLattes:
    
 os.system('clear')
 lattes = extractLattes()
+names = lattes.get_name_by_department('EMC')
 
-#id_name = lattes.serch_by_name("Janaide Cavalcante Rocha")
-date = lattes.recovery_by_id('id_name')
-print(date)
-#print(id_lattes)
-#dados = lattes.recovery_by_id(id_lattes)
-#print(dados)
 
+x=[]
+y=[]
+
+for name in names:
+    try:
+        date = lattes.recovery_by_id(lattes.serch_by_name(name[0]))
+        print(date)
+        x.append(date[1])
+        y.append(date[0])
+    except:
+        pass
+   
+plt.scatter(x, y)
+plt.title('Dispersão: produção científica X patentes')
+plt.show()
