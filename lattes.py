@@ -64,12 +64,18 @@ class extractLattes:
             bsObj = BeautifulSoup(req.content, 'html.parser')
 
             resumo =  bsObj.find('p', class_='resumo').text
+
+            
+
             
             title_wrapper =[[x,x.a.h1.text] for x in  bsObj.findAll('div',{'class':'title-wrapper'}) if x.a is not None]
             #---------------------------------------------------------------------------------------------------#
-            artigos = [ x[0] for x in title_wrapper if x[1] is not None and x[1]=="Produções"]
-            if not artigos==[]:
-                artigos  =[ x.get_text() for x in artigos[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
+            
+
+            artigos_publicados = [ x[0] for x in title_wrapper if x[1] is not None and x[1]=="Produções"]
+            if not artigos_publicados==[]:
+                #artigos  =[ x.get_text() for x in artigos[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
+                artigos_publicados = [ x.get_text() for x in artigos_publicados[0].findAll('div',{'class':'artigo-completo'}) if len(x.get_text())>10]
             #---------------------------------------------------------------------------------------------------#
             linhas_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Linhas de pesquisa']
             if not linhas_de_pesquisa==[]:
@@ -105,7 +111,7 @@ class extractLattes:
            
             #  #---------------------------------------------------------------------------------------------------#
 
-            return [len(artigos),len(patentes)]
+            return [len(artigos_publicados),len(patentes), name]
 
 
 
@@ -163,7 +169,7 @@ class extractLattes:
    
 os.system('clear')
 lattes = extractLattes()
-names = lattes.get_name_by_department('EMC')
+names = lattes.get_name_by_department('DAS')
 
 
 x=[]
@@ -175,8 +181,8 @@ for name in names:
         print(date)
         x.append(date[1])
         y.append(date[0])
-    except:
-        pass
+    except Exception as er:
+        print(er)
    
 plt.scatter(x, y)
 plt.title('Dispersão: produção científica X patentes')
