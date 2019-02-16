@@ -41,7 +41,10 @@ class extractLattes:
         html = driver.page_source
         bs = BeautifulSoup(html, "html.parser")
         id_html =  bs.findAll('li')
-        return [str(id_html)[41:51],name]
+        if id_html==[]:
+            return False
+        else:
+            return [str(id_html)[41:51],name]
 
 
     def bsobj(self, url):
@@ -131,9 +134,9 @@ for depart_name in departaments:
     for name in names:
         try:
             get_id = lattes.serch_by_name(name[0])
-            
-            if get_id[0] is None:
-                print(get_id[1]+": Sem cadastro na plataforma lattes")
+            print(get_id)
+            if  not get_id :
+                print(name[0]+": Sem cadastro na plataforma lattes")
             else:
                 date = lattes.recovery_by_id(get_id)
                 print(date)
