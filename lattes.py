@@ -21,8 +21,11 @@ class extractLattes:
         self.headers_agent = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
-    def get_name_by_department(self, depart):
-        self.cursor.execute("SELECT nome FROM professores WHERE departamento=?",(depart, ))
+    def get_sqlData(self, query, arg ):
+        try:
+            self.cursor.execute(query, (arg,))
+        except Exception as e:
+            return e
         return self.cursor.fetchall()
 
     def serch_by_name(self, name):
@@ -101,8 +104,16 @@ class extractLattes:
         except Exception as e:
                 return e
                 
-
+    def set_lattes(self, name):
+        self.cursor.execute("UPDATE professores SET lattes=0 WHERE nome=?",(name, ))
+        self.conn.commit()
+        return "lattes was set: 0 value"
    
+    def set_sqlData(self,query,args):
+        try:
+            self.cursor.execute(query,(args,))
+        except Exception as e:
+            return e
 
     def write(self, date):
         try:
@@ -128,23 +139,8 @@ for depart_name in departaments:
     x=[]
     y=[]
     
-    names = lattes.get_name_by_department(depart_name)
-   
-
-    for name in names:
-        try:
-            get_id = lattes.serch_by_name(name[0])
-            print(get_id)
-            if  not get_id :
-                print(name[0]+": Sem cadastro na plataforma lattes")
-            else:
-                date = lattes.recovery_by_id(get_id)
-                print(date)
-                # x.append(date[1])
-                # y.append(date[0])
-        except Exception as er:
-            print(er)
+    names = lattes.get_sqlData("SELECT nome, matriculas FROM professores WHERE departamento=?",arg=depart_name)
     
-    # plt.scatter(x, y)
-    # plt.title('Dispersão: produção científica X patentes')
-    # plt.show()
+    print(names)
+
+ 
