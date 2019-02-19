@@ -33,9 +33,9 @@ class extractLattes:
         
         options = se.webdriver.ChromeOptions()
         options.add_argument('headless')
-        driver = se.webdriver.Chrome(chrome_options=options)
+        driver = se.webdriver.Chrome('/home/lab-pesquisa/Desktop/projetos/AGU-CTC/chromedriver', chrome_options=options)
         driver.get(url)
-        #sleep(2)
+        #sleep(3)
 
         text_fild = driver.find_element_by_id("textoBusca")
         text_fild.send_keys(name)
@@ -73,31 +73,31 @@ class extractLattes:
                 #artigos  =[ x.get_text() for x in artigos[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
                 artigos_publicados = [ x.get_text() for x in artigos_publicados[0].findAll('div',{'class':'artigo-completo'}) if len(x.get_text())>10]
 
-            linhas_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Linhas de pesquisa']
-            if not linhas_de_pesquisa==[]:
-                linhas_de_pesquisa = [ x.get_text() for x in linhas_de_pesquisa[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
+            # linhas_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Linhas de pesquisa']
+            # if not linhas_de_pesquisa==[]:
+            #     linhas_de_pesquisa = [ x.get_text() for x in linhas_de_pesquisa[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>10]
 
-            projetos_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Projetos de pesquisa']
-            if not projetos_de_pesquisa==[]:
-                projetos_de_pesquisa = [ x.get_text() for x in projetos_de_pesquisa[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
-                projetos_de_pesquisa = list(zip(projetos_de_pesquisa[::2], projetos_de_pesquisa[1::2]))
+            # projetos_de_pesquisa =[ x[0] for x in title_wrapper if x[1]=='Projetos de pesquisa']
+            # if not projetos_de_pesquisa==[]:
+            #     projetos_de_pesquisa = [ x.get_text() for x in projetos_de_pesquisa[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            #     projetos_de_pesquisa = list(zip(projetos_de_pesquisa[::2], projetos_de_pesquisa[1::2]))
 
-            projetos_em_desenvolvimento = [ x[0] for x in title_wrapper if x[1]=='Projetos de desenvolvimento']
-            if not projetos_em_desenvolvimento == []:
-                projetos_em_desenvolvimento = [ x.get_text() for x in projetos_em_desenvolvimento[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(projetos_em_desenvolvimento)>0 and len(x.get_text())>15]
-                projetos_em_desenvolvimento = list(zip(projetos_em_desenvolvimento[::2], projetos_em_desenvolvimento[1::2]))
+            # projetos_em_desenvolvimento = [ x[0] for x in title_wrapper if x[1]=='Projetos de desenvolvimento']
+            # if not projetos_em_desenvolvimento == []:
+            #     projetos_em_desenvolvimento = [ x.get_text() for x in projetos_em_desenvolvimento[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(projetos_em_desenvolvimento)>0 and len(x.get_text())>15]
+            #     projetos_em_desenvolvimento = list(zip(projetos_em_desenvolvimento[::2], projetos_em_desenvolvimento[1::2]))
 
-            area_atuacao =[ x[0] for x in title_wrapper if x[1]=='Áreas de atuação']
-            if not area_atuacao==[]:
-                area_atuacao = [ x.get_text() for x in area_atuacao[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            # area_atuacao =[ x[0] for x in title_wrapper if x[1]=='Áreas de atuação']
+            # if not area_atuacao==[]:
+            #     area_atuacao = [ x.get_text() for x in area_atuacao[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
            
             patentes = [ x[0] for x in title_wrapper if x[1]=='Patentes e registros']
             if not patentes==[]:
                 patentes = [ x.get_text().replace('\t','').replace('\n','') for x in patentes[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
            
-            orientacoes = [ x[0] for x in title_wrapper if x[1]=='Orientações']
-            if not orientacoes==[]:
-                orientacoes = [ x.get_text() for x in orientacoes[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
+            # orientacoes = [ x[0] for x in title_wrapper if x[1]=='Orientações']
+            # if not orientacoes==[]:
+            #     orientacoes = [ x.get_text() for x in orientacoes[0].findAll('div',{'class':'layout-cell-pad-5'}) if len(x.get_text())>15]
         
             return [len(artigos_publicados),len(patentes), name]
           
@@ -111,13 +111,14 @@ class extractLattes:
    
     def set_sqlData(self,query,args):
         try:
-            self.cursor.execute(query,(args,))
+            self.cursor.execute(query,args)
+            self.conn.commit()
         except Exception as e:
             return e
 
     def write(self, date):
         try:
-            self.cursor.executemany("""INSERT INTO ids (id,nome,empresa,endereço,resumo) VALUES (?,?,?,?,?);""", [date])
+            self.cursor.execute("""INSERT INTO ids (id,nome,empresa,endereço,resumo) VALUES (?,?,?,?,?);""", (date,))
             self.conn.commit()
             return "dado inserido no banco com sucesso"
         except Exception as e:
@@ -136,11 +137,19 @@ departaments = ["ARQ","DAS","ECV","ELL","EGC","EMC","ENS","EPS","EQA","INE"]
 os.system('clear')
 lattes = extractLattes()
 for depart_name in departaments:
-    x=[]
-    y=[]
-    
-    names = lattes.get_sqlData("SELECT nome, matriculas FROM professores WHERE departamento=?",arg=depart_name)
-    
-    print(names)
+    names = lattes.get_sqlData("SELECT nome, matricula FROM professores WHERE departamento=? AND lattes=1",arg=depart_name)
+    for i in names:
 
- 
+        recovery_id = lattes.serch_by_name(i[0])
+        lattes_infos =  lattes.recovery_by_id(recovery_id)
+        
+        if lattes_infos is None:
+            print(str(i[0])+': Inválido')
+        else:
+            lattes_infos[-1]=i[1]
+        print(lattes_infos)
+           
+        lattes.set_sqlData("INSERT INTO lattes_info(artigos_num,patentes_num,id_mat ) VALUES (?,?,?)",lattes_infos)
+
+
+    
