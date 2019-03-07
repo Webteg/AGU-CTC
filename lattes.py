@@ -1,5 +1,6 @@
 #!./env/bin/python3
 # -*- coding: utf-8 -*-
+from captcha import solveCaptcha, ImageCaptcha
 from bs4 import BeautifulSoup
 import requests
 import sqlite3
@@ -11,7 +12,7 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 class extractLattes:
     def __init__(self, url=None):
@@ -35,7 +36,7 @@ class extractLattes:
         options.add_argument('headless')
         driver = se.webdriver.Chrome('/home/lab-pesquisa/Desktop/projetos/AGU-CTC/chromedriver', chrome_options=options)
         driver.get(url)
-        #sleep(3)
+        sleep(3)
 
         text_fild = driver.find_element_by_id("textoBusca")
         text_fild.send_keys(name)
@@ -44,10 +45,23 @@ class extractLattes:
         html = driver.page_source
         bs = BeautifulSoup(html, "html.parser")
         id_html =  bs.findAll('li')
-        if id_html==[]:
-            return False
-        else:
-            return [str(id_html)[41:51],name]
+        # if id_html==[]:
+        #     return False
+        # else:
+        #     return [str(id_html)[41:51],name]
+        lattesId = str(id_html)[41:51]
+        print(lattesId)
+        driver.get("http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + lattesId)
+        urlImage = driver.find_element_by_id("image_captcha").get_attribute("src")
+        print(urlImage)
+        # captchaNum = ImageCaptcha(urlImage)
+        # print(captchaNum, urlImage)
+        # text_fild = driver.find_element_by_id("informado")
+        # text_fild.send_keys(captchaNum)
+        # driver.find_element_by_id('btn_validar_captcha').click()
+        # sleep(4)
+        # return driver.page_source 
+
 
 
     def bsobj(self, url):
@@ -66,10 +80,10 @@ class extractLattes:
             name = id_lattes[1]
         
             req = requests.get(url, headers=self.headers_agent)
-            print(req)
+            print(req.content)
             bsObj = BeautifulSoup(req.content, 'html.parser')
+         
             resumo =  bsObj.find('p', class_='resumo').text
-            print(resumo)
             title_wrapper =[[x,x.a.h1.text] for x in  bsObj.findAll('div',{'class':'title-wrapper'}) if x.a is not None]
             artigos_publicados = [ x[0] for x in title_wrapper if x[1] is not None and x[1]=="Produções"]
             if not artigos_publicados==[]:
@@ -141,9 +155,8 @@ for depart_name in departaments:
         
         recovery_id = lattes.serch_by_name(i[0])
         print(recovery_id)
-        lattes_infos =  lattes.recovery_by_id(recovery_id)
-        print(lattes_infos)
+        # lattes_infos =  lattes.recovery_by_id(recovery_id)
+        # print(lattes_infos)
         #lattes.set_artigos(lattes_infos,i[1])
         
 
-    

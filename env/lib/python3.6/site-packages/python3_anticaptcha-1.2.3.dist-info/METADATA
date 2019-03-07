@@ -1,0 +1,34 @@
+Metadata-Version: 2.1
+Name: python3-anticaptcha
+Version: 1.2.3
+Summary: Python 3 Anti-Captcha service library with AIO module.
+Home-page: https://github.com/AndreiDrang/python3-anticaptcha
+Author: AndreiDrang, redV0ID
+Author-email: drang.andray@gmail.com
+License: MIT
+Keywords: captcha
+                anticaptcha
+				python3
+                recaptcha
+                security
+                api
+                python-library
+                python-anticaptcha
+                anticaptcha-client
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Framework :: AsyncIO
+Classifier: Operating System :: Unix
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: MacOS
+Requires-Python: >=3.6.0
+Requires-Dist: requests (==2.21.0)
+Requires-Dist: aiohttp (==3.5.4)
+Requires-Dist: pika (==0.13.0)
+
+UNKNOWN
+
+
