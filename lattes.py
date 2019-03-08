@@ -32,12 +32,10 @@ class extractLattes:
     def serch_by_name(self, name):
         url = "http://buscatextual.cnpq.br/buscatextual/busca.do"
         
-        options = se.webdriver.ChromeOptions()
-        options.add_argument('headless')
-        driver = se.webdriver.Chrome('/home/lab-pesquisa/Desktop/projetos/AGU-CTC/chromedriver', chrome_options=options)
+        # options = se.webdriver.ChromeOptions()
+        # options.add_argument('headless')
+        driver = se.webdriver.Chrome('/home/lab-pesquisa/Desktop/projetos/AGU-CTC/chromedriver')#, chrome_options=options)
         driver.get(url)
-        sleep(3)
-
         text_fild = driver.find_element_by_id("textoBusca")
         text_fild.send_keys(name)
         driver.find_element_by_id('buscarDemais').click()
@@ -52,15 +50,17 @@ class extractLattes:
         lattesId = str(id_html)[41:51]
         print(lattesId)
         driver.get("http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=" + lattesId)
-        urlImage = driver.find_element_by_id("image_captcha").get_attribute("src")
-        print(urlImage)
-        # captchaNum = ImageCaptcha(urlImage)
-        # print(captchaNum, urlImage)
-        # text_fild = driver.find_element_by_id("informado")
-        # text_fild.send_keys(captchaNum)
-        # driver.find_element_by_id('btn_validar_captcha').click()
-        # sleep(4)
-        # return driver.page_source 
+        captchaNum = input("Wait response:")
+
+        text_fild = driver.find_element_by_id("informado")
+        text_fild.send_keys(captchaNum)
+        btn = driver.find_element_by_id('btn_validar_captcha')
+        btn.click()
+        sleep(5)
+        html = driver.page_source
+
+        driver.close()
+        return (name, html)
 
 
 
@@ -149,14 +149,24 @@ departaments = ["ARQ","DAS","ECV","ELL","EGC","EMC","ENS","EPS","EQA","INE"]
    
 os.system('clear')
 lattes = extractLattes()
+
+conn = sqlite3.connect('teste.db')
+csr = conn.cursor()
+
+
+
+
+
+
 for depart_name in departaments:
     names = lattes.get_sqlData("SELECT nome, matricula FROM professores WHERE departamento=? AND lattes=1",arg=depart_name)
     for i in names:
+        data = lattes.serch_by_name(i[0])
+        print(data)
+        csr.execute('INSERT  OR REPLACE INTO teste(id,html) VALUES (?,?)',(data))
+        conn.commit()
+
+conn.close()
         
-        recovery_id = lattes.serch_by_name(i[0])
-        print(recovery_id)
-        # lattes_infos =  lattes.recovery_by_id(recovery_id)
-        # print(lattes_infos)
-        #lattes.set_artigos(lattes_infos,i[1])
         
 
